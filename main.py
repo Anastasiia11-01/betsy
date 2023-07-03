@@ -15,46 +15,60 @@ from textblob import TextBlob
 from autocorrect import Speller
 import os
 
+
 def main():
-    populate_test_database(50)
+    #populate_test_database(50)
     search('shirt')
     list_user_products(1)
     list_products_per_tag(2)
-    add_product_to_catalog(1, 'shirt')
+    #add_product_to_catalog(1, 'shirt')
     update_stock(1, 5)
     purchase_product(1, 1, 1)
-    remove_product(1)
+    #remove_product(1)
 
 """new_product1 = models.Product.create(name = 'product', owner = 2, description = 'description', price_per_unit_cents = 2000, amount_in_stock = 2)
 print(new_product1.prodid) """          
 
 #creates and populates a database based on models.py
-def populate_test_database(number:int):
+#each time this function is being run it will add more values into the existing tables.
+def populate_test_database(number:int, db_name = 'betsy_new.db'):
     
-    os.getcwd()
-   
+    path = os.path.dirname(os.path.abspath(__file__))
+    
+    if os.getcwd() != path:
+        os.chdir(path)
+    
+    
+    
     user_data = []
     product_data = []
     tag_data = []
     transaction_data = []
+
+    
     
     for i in range(number):
+        lst = []
+        numb = random.randint(1, number)
+        if numb not in lst:
+            lst.append(numb)
+            owner_id = numb
+            product_id = numb
+            tag_number = numb
+            buyer_id = numb
+       
 
         rand_name = unique_names_generator.get_random_name()
         rand_address = random_address.real_random_address()   
         
-
         product_list = ['tv','shirt', 'couch', 'sofa', ' trousers', 'baby clothing', 'buggy', 'bike', 'car', 'table', 'chair', 'phone', 'mobile', 'tiger', 'print', 'cow']
         product_name = random.choice(product_list)
-        owner_id = random.randint(1, number)
+        
         description = (''.join(random.choices(string.ascii_lowercase, k=5)))
         price_per_unit_cents = random.randint(1, 5000000)
         amount_in_stock = random.randint(0, 1000)
-
-        product_id =random.randint(1, number)
-        tag_number = random.randint(1, number)
-
-        buyer_id = random.randint(1, number)
+              
+        
         number_items = random.randint(1, 5)
 
         user_value = (rand_name, rand_address, rand_address)   
@@ -68,15 +82,21 @@ def populate_test_database(number:int):
         
         transaction_value = (product_id, buyer_id, number_items)
         transaction_data.append(transaction_value)
-        
-    user = models.User.insert_many(user_data, fields=[models.User.name, models.User.address, models.User.billing_info]).execute()
-    product = models.Product.insert_many(product_data, fields=[models.Product.name, models.Product.owner, models.Product.description, models.Product.price_per_unit_cents, models.Product.amount_in_stock]).execute()
-    tag = models.Tag.insert_many(tag_data, fields=[models.Tag.product, models.Tag.number]).execute()
-    transaction = models.Transaction.insert_many(transaction_data, fields=[models.Transaction.product, models.Transaction.buyer, models.Transaction.number_items]).execute()
 
+    from os.path import getsize
+   
+    
+    if getsize(db_name) > 100:  
+        user = models.User.insert_many(user_data, fields=[models.User.name, models.User.address, models.User.billing_info]).execute()
+        product = models.Product.insert_many(product_data, fields=[models.Product.name, models.Product.owner, models.Product.description, models.Product.price_per_unit_cents, models.Product.amount_in_stock]).execute()
+        tag = models.Tag.insert_many(tag_data, fields=[models.Tag.product, models.Tag.number]).execute()
+        transaction = models.Transaction.insert_many(transaction_data, fields=[models.Transaction.product, models.Transaction.buyer, models.Transaction.number_items]).execute()
+        return f'Database populated.'
+    
+  
     
 
-print(populate_test_database(50))
+#print(populate_test_database(50))
 
 
 # returns a list of products with their ids, which consist a given term in their name.
@@ -86,7 +106,8 @@ def search(term):
     query = (models.Product.select())
     for product in query:
         if re.search(str(final_term.correct()), str(product.name), re.IGNORECASE) != None:
-            products.append({product.prodid:product.name})
+            item = f'Product "{product.name}" with id {product.prodid}.'
+            products.append(item)
     return products
     
 
@@ -159,22 +180,19 @@ def purchase_product(product_id, buyer_id, quantity):
 
 #deletes a given product form the database.
 def remove_product(product_id):
-    item = models.Product.get(models.Product.prodid == product_id)
-    item.delete_instance()
-    return f'The item removed.'
+    item = models.Product.get_or_none(models.Product.prodid == product_id)      
+    if item is not None:
+        item.delete_instance()
+        return f'The item removed.'
+    else:
+        return f'There is no such product.'
+ 
+    
 
-#print(remove_product(2))
+#print(remove_product(95))
 
 if __name__=='__main__':
     main()
-
-
-
-    
-
-
-
-
 
 
 
