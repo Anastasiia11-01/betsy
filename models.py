@@ -1,7 +1,9 @@
 # Models go here
 import peewee
+import os
 
-db = peewee.SqliteDatabase(":memory:")
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+db = peewee.SqliteDatabase('betsy_new.db')
 
 class BaseModel(peewee.Model):
     class Meta:
@@ -10,7 +12,7 @@ class BaseModel(peewee.Model):
 
 class User(BaseModel):
     userid = peewee.AutoField()
-    name = peewee.CharField(unique=True)
+    name = peewee.CharField()
     address = peewee.CharField(max_length=300)
     billing_info = peewee.CharField(max_length=300)
 
@@ -18,7 +20,7 @@ class User(BaseModel):
         table_name = 'users'
 
 class Product(BaseModel):
-    prodid = peewee.AutoField()
+    prodid = peewee.AutoField(unique = True)
     name = peewee.CharField()
     owner = peewee.ForeignKeyField(User, column_name='user_id')
     description = peewee.CharField()
